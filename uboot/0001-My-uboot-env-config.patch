@@ -1,0 +1,32 @@
+From edd4038a6f20a91316c1bd6c6d3dccdf96033521 Mon Sep 17 00:00:00 2001
+From: NguyenDung <mdung0802@gmail.com>
+Date: Sun, 13 Sep 2026 22:16:52 +0700
+Subject: [PATCH] My uboot env config
+Upstream-Status: Inappropriate [configuration]
+---
+ include/configs/am335x_evm.h | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index 67f46562539..3c14776abc0 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -151,6 +151,15 @@
+ 		"else " \
+ 			"setenv console ttyO0,115200n8;" \
+ 		"fi;\0" \
++	"bootargs=console=ttyO0,115200n8 "\
++		"root=/dev/nfs ip=192.168.0.100:::::eth0 "\
++		"nfsroot=192.168.0.1:/home/as/Desktop/linuxEmbeddedBBB/bootlin/Yocto-Project/nfsroot,nfsvers=3,tcp "\
++		"rw "\
++		"rootwait\0" \
++	"bootcmd=tftp 0x81000000 zImage; sleep 1;tftp 0x82000000 am335x-boneblack.dtb; run init_console; bootz 0x81000000 - 0x82000000\0" \
++	"ethprime=eth0\0" \
++	"ipaddr=192.168.0.100\0" \
++	"serverip=192.168.0.1\0" \
+ 	NANDARGS \
+ 	NETARGS \
+ 	DFUARGS \
+-- 
+2.25.1
+
