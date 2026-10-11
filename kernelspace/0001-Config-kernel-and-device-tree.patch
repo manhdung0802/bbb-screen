@@ -1,0 +1,130 @@
+From 3813acd66196a818e3df8bc1f331d83831046223 Mon Sep 17 00:00:00 2001
+From: NguyenDung <mdung0802@gmail.com>
+Date: Sat, 10 Oct 2026 21:22:11 +0700
+Subject: [PATCH] Config kernel and device tree
+
+---
+ .../dts/ti/omap/am335x-boneblack-custom.dts   | 60 +++++++++++++++++++
+ arch/arm/configs/bbb_defconfig                | 11 ++--
+ 2 files changed, 66 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/ti/omap/am335x-boneblack-custom.dts b/arch/arm/boot/dts/ti/omap/am335x-boneblack-custom.dts
+index 95a643bbcd4c..d0e79239c7f8 100644
+--- a/arch/arm/boot/dts/ti/omap/am335x-boneblack-custom.dts
++++ b/arch/arm/boot/dts/ti/omap/am335x-boneblack-custom.dts
+@@ -16,7 +16,40 @@ / {
+     linux,default-trigger = "none";
+     default-state = "on";
+ };
++
++&am33xx_pinmux {
++    i2c1_pins: i2c1_pins {
++        pinctrl-single,pins = <
++            AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE2)
++            AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE2)
++        >;
++    };
++    spi1_pins: spi1_pins {
++        pinctrl-single,pins = <
++            AM33XX_PADCONF(AM335X_PIN_MCASP0_ACLKX, PIN_OUTPUT_PULLDOWN, MUX_MODE3) /* 31 SCLK */
++            AM33XX_PADCONF(AM335X_PIN_MCASP0_AHCLKR, PIN_OUTPUT_PULLUP, MUX_MODE3) /* 28 CS0 */
++            AM33XX_PADCONF(AM335X_PIN_MCASP0_AXR0, PIN_OUTPUT, MUX_MODE3) /* 30 D1 SDA*/
++            AM33XX_PADCONF(AM335X_PIN_GPMC_A1, PIN_OUTPUT, MUX_MODE7) /* 23 DC */
++            AM33XX_PADCONF(AM335X_PIN_MCASP0_FSR, PIN_OUTPUT, MUX_MODE7) /* 27 RES */
++        >;
++    };
++    uart2_pins: uart2_pins {
++        pinctrl-single,pins = <
++            AM33XX_PADCONF(AM335X_PIN_SPI0_SCLK, PIN_INPUT_PULLUP, MUX_MODE1)
++            AM33XX_PADCONF(AM335X_PIN_SPI0_D0, PIN_OUTPUT, MUX_MODE1)
++        >;
++    };
++    uart4_pins: uart4_pins {
++        pinctrl-single,pins = <
++            AM33XX_PADCONF(AM335X_PIN_GPMC_WAIT0, PIN_INPUT_PULLUP, MUX_MODE6)
++            AM33XX_PADCONF(AM335X_PIN_GPMC_WPN, PIN_OUTPUT, MUX_MODE6)
++        >;
++    };
++};
++
+ &i2c1 {
++    pinctrl-names = "default";
++    pinctrl-0 = <&i2c1_pins>;
+     clock-frequency = <100000>;
+     status = "okay";
+     nunchuk: joystick@52 {
+@@ -24,4 +57,31 @@ nunchuk: joystick@52 {
+         reg = <0x52>;
+         nintendo,alternate-init;
+     };
++};
++
++&spi1 {
++    pinctrl-names = "default";
++    pinctrl-0 = <&spi1_pins>;
++    status = "okay";
++    oled: monitor@0 {
++        compatible = "oled,ssd1306";
++        reg = <0>;
++        spi-max-frequency = <1000000>;
++        reset-gpios = <&gpio3 19 GPIO_ACTIVE_HIGH>;
++        dc-gpios = <&gpio1 17 GPIO_ACTIVE_HIGH>;
++    };
++};
++
++&uart2 {
++    compatible = "bootlin,serial";
++    status = "okay";
++    pinctrl-names = "default";
++    pinctrl-0 = <&uart2_pins>;
++};
++
++&uart4 {
++    compatible = "bootlin,serial";
++    status = "okay";
++    pinctrl-names = "default";
++    pinctrl-0 = <&uart4_pins>;
+ };
+\ No newline at end of file
+diff --git a/arch/arm/configs/bbb_defconfig b/arch/arm/configs/bbb_defconfig
+index ad7e3e01359c..24e141a1264d 100644
+--- a/arch/arm/configs/bbb_defconfig
++++ b/arch/arm/configs/bbb_defconfig
+@@ -362,9 +362,10 @@ CONFIG_WL12XX=m
+ CONFIG_WL18XX=m
+ CONFIG_WLCORE_SPI=m
+ CONFIG_WLCORE_SDIO=m
++CONFIG_INPUT_LEDS=m
+ CONFIG_INPUT_MOUSEDEV=m
+-CONFIG_INPUT_JOYDEV=m
+-CONFIG_INPUT_EVDEV=m
++CONFIG_INPUT_JOYDEV=y
++CONFIG_INPUT_EVDEV=y
+ CONFIG_KEYBOARD_ATKBD=m
+ CONFIG_KEYBOARD_GPIO=m
+ CONFIG_KEYBOARD_MATRIX=m
+@@ -594,10 +595,10 @@ CONFIG_MMC_OMAP=y
+ CONFIG_MMC_OMAP_HS=y
+ CONFIG_MMC_SDHCI_OMAP=y
+ CONFIG_NEW_LEDS=y
+-CONFIG_LEDS_CLASS=m
++CONFIG_LEDS_CLASS=y
+ CONFIG_LEDS_CPCAP=m
+ CONFIG_LEDS_LM3532=m
+-CONFIG_LEDS_GPIO=m
++CONFIG_LEDS_GPIO=y
+ CONFIG_LEDS_LP55XX_COMMON=m
+ CONFIG_LEDS_LP5523=m
+ CONFIG_LEDS_PCA963X=m
+@@ -605,7 +606,7 @@ CONFIG_LEDS_PWM=m
+ CONFIG_LEDS_TRIGGERS=y
+ CONFIG_LEDS_TRIGGER_TIMER=m
+ CONFIG_LEDS_TRIGGER_ONESHOT=m
+-CONFIG_LEDS_TRIGGER_HEARTBEAT=m
++CONFIG_LEDS_TRIGGER_HEARTBEAT=y
+ CONFIG_LEDS_TRIGGER_BACKLIGHT=m
+ CONFIG_LEDS_TRIGGER_CPU=y
+ CONFIG_LEDS_TRIGGER_GPIO=m
+-- 
+2.53.0
+

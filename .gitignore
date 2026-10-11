@@ -1,1 +1,8 @@
 build
+*.dwo
+nfsroot
+*.mod
+*.mod.*
+*.cmd
+*.symvers
+*.order
