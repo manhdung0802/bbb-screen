@@ -1,0 +1,17 @@
+CompileFlags:
+  Add: [
+    "-target", "arm-bootlin-linux-gnueabihf",
+    "-D__KERNEL__",
+    "-DMODULE",
+    "-I/home/as/Desktop/linuxEmbeddedBBB/bootlin/linux-kernel/linux-kernel-bbb-labs/src/linux/arch/arm/include",
+    "-I/home/as/Desktop/linuxEmbeddedBBB/bootlin/linux-kernel/linux-kernel-bbb-labs/src/linux/arch/arm/include/generated",
+    "-I/home/as/Desktop/linuxEmbeddedBBB/bootlin/linux-kernel/linux-kernel-bbb-labs/src/linux/include"
+  ]
+  Compiler: arm-bootlin-linux-gnueabihf-gcc
+
+Completion:
+  HeaderInsertion: Never
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None

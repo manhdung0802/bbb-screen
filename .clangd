@@ -1,5 +1,9 @@
 CompileFlags:
-    CompilationDatabase: build
-Config:
-  Style:
-    HeaderInsertion: Never
+  CompilationDatabase: build
+
+Completion:
+  HeaderInsertion: Never
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: None

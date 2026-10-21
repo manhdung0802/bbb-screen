@@ -40,6 +40,11 @@
   - `interrupts`, `clocks`, `dmas`, `gpios`, ...: mô tả tài nguyên.
   - `#address-cells` và `#size-cells`: định nghĩa kích thước ô địa chỉ và size cho node con.
   - `pinctrl-<x>` và `pinctrl-names`: liên kết cấu hình pin mux.
+  - với interrupt cần 2 thuộc tính
+    ```
+    interrupt-parent = <&gpio2>; // nhóm gpio chứa chân ngắt
+    interrupt = <2 1>; // 2: thứ tự chân trong nhóm gpio, 1: chế độ ngắt IRQ_TYPE_EDGE_RISING
+    ```
 
 **Bước 2: Cấu hình Pin Mux**
 - Khai báo trạng thái pin mux trong node `&am33xx_pinmux` (trên AM335x):
@@ -161,6 +166,7 @@ MODULE_DEVICE_TABLE(of, mydrv_of_ids);
 - `MODULE_DEVICE_TABLE`: cho phép `udev` tự động load module khi device xuất hiện.
 
 **Bước 4: Đăng ký driver với bus subsystem**
+- đưa device vào danh mục quản lý của linux
 
 *I2C driver:*
 ```c
@@ -214,6 +220,13 @@ static int mydrv_probe(struct i2c_client *client)
 ```
 - Lấy tài nguyên: `devm_gpiod_get()`, `devm_request_threaded_irq()`, `devm_platform_ioremap_resource()`.
 - Dùng prefix `devm_` để tự động giải phóng khi device bị tháo.
+- Các bước chung trong hàm probe();
+  + Bước 1: Cấp phát bộ nhớ quản lý thiết bị (Private Data)Driver cần một biến cấu trúc riêng (thường đặt tên là struct my_device_data) để lưu toàn bộ trạng thái của thiết bị (địa chỉ I/O, số ngắt, con trỏ subsystem, mutex...).Cấp phát bộ nhớ cho cấu trúc này bằng devm_kzalloc().Lưu con trỏ này vào cấu trúc struct device bằng hàm dev_set_drvdata() để các hàm khác (như remove(), hàm ngắt ISR) có thể lấy lại dữ liệu khi cần.
+  + Bước 2: Rút trích tài nguyên phần cứng (Resource Acquisition)Driver đọc thông tin phần cứng mà Device Tree hoặc bus cung cấp:   Địa chỉ vùng nhớ / Thanh ghi (I/O Memory): Lấy tài nguyên bằng platform_get_resource() và ánh xạ sang địa chỉ ảo bằng devm_ioremap_resource() hoặc ioremap() để CPU đọc/ghi thanh ghi.   Chân ngắt (IRQ): Lấy số hiệu ngắt từ Device Tree bằng platform_get_irq().   Chân điều khiển (GPIOs): Lấy các chân GPIO như Reset, Chip Select, Power Enable bằng devm_gpiod_get_optional().Các thuộc tính mở rộng: Đọc các tham số cấu hình riêng từ Device Tree bằng các hàm of_property_read_*.   
+  + Bước 3: Đánh thức và kiểm tra phần cứng (Hardware Init)Trước khi công bố thiết bị cho hệ điều hành, driver cần đảm bảo chip phần cứng thực sự phản hồi:Cấp nguồn hoặc bật Clock cho thiết bị nếu có.Thực hiện chuỗi kích hoạt cơ bản (như kéo chân Reset mức thấp rồi kéo lên mức cao để Hard Reset IC).Đọc một thanh ghi nhận diện phần cứng (ví dụ WHO_AM_I hoặc CHIP_ID) để xác minh chip đã gắn đúng và giao tiếp tốt.Gửi chuỗi thiết lập ban đầu (Init Sequence) để đưa linh kiện về trạng thái sẵn sàng.
+  + Bước 4: Thiết lập cơ chế nhận dữ liệu & Cấu hình SubsystemChuẩn bị sẵn "khung" của loại thiết bị mà bạn muốn đăng ký:Cấp phát cấu trúc của Subsystem: Cấp phát struct input_dev, struct iio_dev, hay struct net_device tùy vào mục đích nghiệp vụ.Khai báo năng lực (Capabilities): Báo cho kernel biết thiết bị có thể làm những gì (ví dụ: các nút bấm có thể nhấn, dải đo gia tốc, độ phân giải màn hình).Đăng ký xử lý ngắt: Gọi devm_request_threaded_irq() gắn số IRQ đã lấy ở Bước 2 với hàm xử lý ngắt (ISR) để khi chip phát tín hiệu, driver sẽ đón được dữ liệu.
+  + Bước 5: Đăng ký thiết bị với Subsystem (Registration)Đây là thao tác cuối cùng để kích hoạt thiết bị:Gọi hàm đăng ký chính thức của subsystem tương ứng (ví dụ: input_register_device(), iio_device_register(), hoặc register_netdev()).   Sau khi hàm này hoàn tất, kernel sẽ tạo các file node trong /dev (hoặc /sys/class/) để ứng dụng User-space có thể mở và sử dụng.   Kết thúc hàm probe() và trả về 0 (thành công).
+
 
 **Bước 6: Implement hàm `remove()`**
 ```c
