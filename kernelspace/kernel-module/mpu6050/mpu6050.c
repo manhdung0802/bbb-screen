@@ -122,6 +122,7 @@ static const struct iio_chan_spec mpu_iio_chan_spec[] = {
 	.indexed = 0,
 	.channel = 0,
 	.info_mask_separate = BIT(IIO_CHAN_INFO_RAW),
+	.info_mask_shared_by_type = BIT(IIO_CHAN_INFO_SCALE),
 	.scan_index = 4,
 	.scan_type = {
 	    .sign = 's',	  // giá trị là kiểu signed
@@ -150,7 +151,7 @@ int mpu_set_trigger_state(struct iio_trigger *trig, bool state) {
 	// hàm này có nhiệm vụ bật/tắt việc truyền ngắt trên mpu6050 theo state mà linux gửi
 	// mục tiêu: + quản lý năng lượng: bật tắt khi cần tránh ngắt gửi quá nhiều không cần thiết
 	//			 + đồng bộ hóa dữ liệu
-	pr_info("%s\n", __func__);
+	// pr_info("%s\n", __func__);
 	u8 buf = state ? 0x11 : 0x00;
 	struct mpu_drvdata *mpu_drvdata = iio_trigger_get_drvdata(trig);
 	return i2c_smbus_write_byte_data(mpu_drvdata->mpu_i2c_client, 0x38, buf);
@@ -161,7 +162,7 @@ int mpu_set_trigger_state(struct iio_trigger *trig, bool state) {
 // };
 
 static irqreturn_t mpu_trigger_handler(int irq, void *p) {
-	pr_info("%s\n", __func__);
+	// pr_info("%s\n", __func__);
 
 	struct {
 		u16 channels[4];
@@ -204,6 +205,8 @@ static int mpu_probe(struct i2c_client *client) {
 	mpu_drvdata->mpu_i2c_client = client;
 	mpu_drvdata->mpu_iio_dev = mpu_iio_dev;
 
+	i2c_set_clientdata(client, mpu_iio_dev);
+
 	mpu_iio_dev->name = "mpu6050";
 	mpu_iio_dev->info = &mpu_iio_info; // chứa hàm đọc, ghi như fops
 	mpu_iio_dev->modes = INDIO_DIRECT_MODE;
@@ -232,7 +235,7 @@ static int mpu_probe(struct i2c_client *client) {
 	}
 
 	// cấu hình tần số lấy mẫu (bao lâu thì kích hoạt ngắt iio_trigger_generic_data_rdy_poll 1 lần) và bộ lọc thông thấp DLPF
-	buf = 0x09;
+	buf = 0x04;
 	i2c_smbus_write_byte_data(client, 0x19, buf);
 	buf = 0x01;
 	i2c_smbus_write_byte_data(client, 0x1A, buf);

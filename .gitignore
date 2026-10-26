@@ -6,3 +6,4 @@ nfsroot
 *.cmd
 *.symvers
 *.order
+*.o

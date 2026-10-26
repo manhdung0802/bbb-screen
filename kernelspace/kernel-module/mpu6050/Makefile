@@ -1,4 +1,4 @@
-obj-m := mpu6050.o nunchuk.o
+obj-m := mpu6050.o
 
 ARCH = arm
 CROSS_COMPILE = arm-bootlin-linux-gnueabihf-
@@ -12,4 +12,4 @@ clean:
 	make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} -C ${KDIR} M=$$PWD clean
 
 install:
-	sudo cp mpu6050.ko /home/as/Desktop/linuxEmbeddedBBB/bbb-screen/nfsroot/home/root/
+	sudo cp mpu6050.ko /home/as/Desktop/linuxEmbeddedBBB/bbb-screen/nfsroot/root/

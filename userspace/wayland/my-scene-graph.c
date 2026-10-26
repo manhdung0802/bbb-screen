@@ -80,12 +80,19 @@ void server_handle_new_output(struct wl_listener *listener, void *data) {
 
 	struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
 	if (mode != NULL) {
+		wlr_log(WLR_INFO, "Dung preferred mode: %dx%d@%d mHz",
+			mode->width, mode->height, mode->refresh);
 		wlr_output_state_set_mode(&state, mode);
+	} else {
+		wlr_log(WLR_INFO, "Khong doc duoc preferred mode (EDID), fallback 1024x768@60Hz");
+		wlr_output_state_set_custom_mode(&state, 1024, 768, 60000);
 	}
 
-	wlr_output_state_set_custom_mode(&state, 600, 400, 0);
-
-	wlr_output_commit_state(wlr_output, &state);
+	if (!wlr_output_commit_state(wlr_output, &state)) {
+		wlr_log(WLR_ERROR, "Loi: Khong the commit output state len man hinh!");
+	} else {
+		wlr_log(WLR_INFO, "Da kich hoat output man hinh thanh cong!");
+	}
 	wlr_output_state_finish(&state);
 	wlr_output_create_global(wlr_output, server->display);
 }
